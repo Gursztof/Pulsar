@@ -1,6 +1,8 @@
 package com.gursztof.pulsar.macro;
 
 import com.gursztof.pulsar.Puslar;
+import com.gursztof.pulsar.chat.ChatPrefix;
+import com.gursztof.pulsar.settings.Settings;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -10,6 +12,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class AntiBanFeatures {
+    private static boolean rotated = false;
+
     private static int currentTick = 0;
     private static final int maxTicks = 252000;
 
@@ -29,9 +33,11 @@ public class AntiBanFeatures {
 
             if (player == null) return;
 
-            if (Puslar.farmingMacro && !player.getHorizontalFacing().equals(FarmingMacro.direction)) {
-                player.sendMessage(Text.literal("Roatated!"), false);
-                requestDelay(43);
+            // TODO if i rotate manually and then on the macro it will not work cuz the variable stays true
+            if (Puslar.farmingMacro && !player.getHorizontalFacing().equals(Settings.direction) && !rotated) {
+                rotated = true;
+                player.sendMessage(ChatPrefix.WARNING.getPrefix().append("ROTATED"), false);
+                requestDelay(Settings.maxDelay);
             }
         });
     }
@@ -42,7 +48,7 @@ public class AntiBanFeatures {
 
             if (client.player == null) return;
             if (currentTick >= maxTicks) {
-                client.player.sendMessage(Text.literal("Reached time limit, killing process for safety reasons"), false);
+                client.player.sendMessage(Text.literal(ChatPrefix.WARNING.getPrefix() + "Reached time limit, killing process for safety reasons"), false);
                 // TODO add kill
             }
         });
@@ -59,7 +65,7 @@ public class AntiBanFeatures {
             if (onBrakeBlock && !brakePending && !isOnBrake) {
                 brakeDurationTicks = 140 + (int) (Math.random() * (1200 - 140));
                 brakePending = true;
-                player.sendMessage(Text.literal("Brake: + " + brakeDurationTicks + " (ticks)"), false);
+                player.sendMessage(ChatPrefix.PULSAR.getPrefix().append("Brake for " + brakeDurationTicks + " ticks"), false);
             }
 
             if (brakePending && !onBrakeBlock) {
@@ -67,12 +73,12 @@ public class AntiBanFeatures {
                 isOnBrake = true;
                 endBrakeTick = currentTick + brakeDurationTicks;
                 Movement.resetMove();
-                player.sendMessage(Text.literal("Brake started"), false);
+                player.sendMessage(ChatPrefix.PULSAR.getPrefix().append("Brake started"), false);
             }
 
             if (isOnBrake && currentTick >= endBrakeTick) {
                 isOnBrake = false;
-                player.sendMessage(Text.literal("Brake ended"), false);
+                player.sendMessage(ChatPrefix.PULSAR.getPrefix().append("Brake ended"), false);
             }
         });
     }
@@ -86,7 +92,6 @@ public class AntiBanFeatures {
             if (dilayRequest) {
                 Puslar.farmingMacro = false;
                 Movement.resetMove();
-                client.player.sendMessage(Text.literal("Delay requested"), false);
                 dilayRequest = false;
             }
 
@@ -96,11 +101,11 @@ public class AntiBanFeatures {
                 } else {
                     Movement.goLeft();
                 }
-                client.player.sendMessage(Text.literal("On delay" + currentTick + " : " + endDelayTick), false);
+                client.player.sendMessage(ChatPrefix.PULSAR.getPrefix().append("Dilay for " + dilayTicks + " ticks"), false);
             }
 
             if (!isOnDelay && dilayTicks > 1) {
-                client.player.sendMessage(Text.literal("Delay stopped"), false);
+                client.player.sendMessage(ChatPrefix.PULSAR.getPrefix().append("Dilay stopped"), false);
                 dilayTicks = 0;
                 Movement.resetMove();
             }

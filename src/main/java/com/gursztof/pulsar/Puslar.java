@@ -20,14 +20,9 @@ public class Puslar implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		LOGGER.info("Puslar init");
-		CommandRegistrationCallback.EVENT.register(new ModCommands());
+		LOGGER.info("Pulsar init");
+		ModCommands.init();
 		FarmingMacro.init();
-
-		HudElementRegistry.addLast(Identifier.of(Puslar.MOD_ID, "my_hud"), (graphics, tickCounter) -> {
-			MinecraftClient client = MinecraftClient.getInstance();
-			graphics.drawText(client.textRenderer, "Puslar", 5, 5, 0xFFFFFF, false);
-		});
 	}
 
 	public static Identifier id(String path) {
