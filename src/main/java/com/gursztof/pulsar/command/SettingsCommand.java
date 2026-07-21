@@ -5,13 +5,12 @@ import com.gursztof.pulsar.settings.SettingsFileManager;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 
 import java.io.IOException;
 
-public class PulsarSettingsCommand {
+public class SettingsCommand {
     // TODO add hints to all settings
-    public void init() {
+    public static void init() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
             dispatcher.register(ClientCommandManager.literal("pulsar")
                     .then(ClientCommandManager.literal("settings")
@@ -39,6 +38,7 @@ public class PulsarSettingsCommand {
             case "maxTicks" -> Settings.maxTicks = Integer.parseInt(value);
             case "delayTicks" -> Settings.delayTicks = Integer.parseInt(value);
             case "maxDistance" -> Settings.maxDistance = Integer.parseInt(value);
+            case "brakeChance" -> Settings.brakeChance = Integer.parseInt(value);
         }
 
         SettingsFileManager.properties.put(settingName, value);

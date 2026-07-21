@@ -1,6 +1,7 @@
 package com.gursztof.pulsar.command;
 
 import com.gursztof.pulsar.chat.ChatPrefix;
+import com.gursztof.pulsar.chat.ChatSender;
 import com.gursztof.pulsar.settings.Settings;
 import com.gursztof.pulsar.settings.SettingsFileManager;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -9,7 +10,7 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 
-public class PulsarDevCommands {
+public class DevCommands {
     public static void init() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
             dispatcher.register(ClientCommandManager.literal("pulsar")
@@ -35,13 +36,13 @@ public class PulsarDevCommands {
         if (player == null) return 0;
 
         if (Settings.debug) {
+            ChatSender.send("Pulsar debug mode off", ChatPrefix.DEBUG);
             SettingsFileManager.properties.put("debug", false);
             Settings.debug = false;
-            player.sendMessage(ChatPrefix.DEBUG.getPrefix().append("Pulsar debug mode off"), false);
         } else {
             SettingsFileManager.properties.put("debug", true);
             Settings.debug = true;
-            player.sendMessage(ChatPrefix.DEBUG.getPrefix().append("Pulsar debug mode on"), false);
+            ChatSender.send("Pulsar debug mode on", ChatPrefix.DEBUG);
         }
 
         return 1;

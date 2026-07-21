@@ -1,7 +1,9 @@
-package com.gursztof.pulsar.macro.antiBanFeatures;
+package com.gursztof.pulsar.macro.legitimacyTools;
 
 import com.gursztof.pulsar.Puslar;
 import com.gursztof.pulsar.chat.ChatPrefix;
+import com.gursztof.pulsar.chat.ChatSender;
+import com.gursztof.pulsar.macro.Hitting;
 import com.gursztof.pulsar.macro.Movement;
 import com.gursztof.pulsar.settings.Settings;
 import net.minecraft.block.BlockState;
@@ -22,19 +24,24 @@ public class TickTools {
         // TODO if i rotate manually and then on the macro it will not work cuz the variable stays true
         if (Puslar.farmingMacro && !player.getHorizontalFacing().equals(Settings.direction) && !rotated) {
             rotated = true;
-            player.sendMessage(ChatPrefix.WARNING.getPrefix().append("ROTATED"), false);
-            if (Settings.debug) player.sendMessage(ChatPrefix.DEBUG.getPrefix().append("Delay on"), false);
+            ChatSender.send("ROTATED", ChatPrefix.WARNING);
+            ChatSender.send("Delay on", ChatPrefix.DEBUG);
             BackgroundTools.requestDelay(Settings.delayTicks);
         }
     }
 
     public static void brakeManager(ClientPlayerEntity player, World world) {
         boolean onBrakeBlock = isBrakeBlock(player, world);
+        // Math random is for chances of NOT going for brake
+        // TODO change that to something else
+        double comparable = Math.random() * 100;
 
-        if (onBrakeBlock && !brakePending && !isOnBrake) {
+        if (onBrakeBlock && !brakePending && !isOnBrake && comparable < Settings.brakeChance) {
+            ChatSender.send(comparable + " is lower than " + Settings.brakeChance, ChatPrefix.DEBUG);
+
             brakeDurationTicks = 140 + (int) (Math.random() * (1200 - 140));
             brakePending = true;
-            player.sendMessage(ChatPrefix.PULSAR.getPrefix().append("Brake for " + brakeDurationTicks + " ticks"), false);
+            ChatSender.send("Brake for " + brakeDurationTicks + " ticks", ChatPrefix.PULSAR);
         }
 
         if (brakePending && !onBrakeBlock) {
@@ -42,12 +49,13 @@ public class TickTools {
             isOnBrake = true;
             endBrakeTick = BackgroundTools.currentTick + brakeDurationTicks;
             Movement.stop();
-            player.sendMessage(ChatPrefix.PULSAR.getPrefix().append("Brake started"), false);
+            Hitting.stop();
+            ChatSender.send("Brake started", ChatPrefix.PULSAR);
         }
 
         if (isOnBrake && BackgroundTools.currentTick >= endBrakeTick) {
             isOnBrake = false;
-            player.sendMessage(ChatPrefix.PULSAR.getPrefix().append("Brake ended"), false);
+            ChatSender.send("Brake ended", ChatPrefix.PULSAR);
         }
     }
 

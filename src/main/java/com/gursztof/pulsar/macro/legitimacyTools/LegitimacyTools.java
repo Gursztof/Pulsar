@@ -1,6 +1,6 @@
-package com.gursztof.pulsar.macro.antiBanFeatures;
+package com.gursztof.pulsar.macro.legitimacyTools;
 
-public class LegitTools {
+public class LegitimacyTools {
     // TODO MACRO ADMINS CHECKS!!!
 
     public static void init() {

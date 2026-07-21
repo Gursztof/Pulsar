@@ -3,9 +3,9 @@
 	"id": "puslar",
 	"version": "${version}",
 	"name": "Puslar",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "This is farming macro mod (Use at your own risk)",
 	"authors": [
-		"Me!"
+		"Gursztof"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",

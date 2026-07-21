@@ -7,7 +7,7 @@ import net.minecraft.util.Formatting;
 public enum ChatPrefix {
     PULSAR(Formatting.LIGHT_PURPLE, "Pulsar"),
     WARNING(Formatting.RED, "Warning"),
-    INFO(Formatting.DARK_AQUA, "INFO");
+    DEBUG(Formatting.GOLD, "DEBUG");
 
     private final Formatting color;
     private final String content;

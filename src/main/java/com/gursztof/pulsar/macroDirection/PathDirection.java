@@ -1,4 +1,4 @@
-package com.gursztof.pulsar.niejestempewnyjakgonazwacenum;
+package com.gursztof.pulsar.macroDirection;
 
 public enum PathDirection {
     LEFT, RIGHT, FORWARD, NOWAY;

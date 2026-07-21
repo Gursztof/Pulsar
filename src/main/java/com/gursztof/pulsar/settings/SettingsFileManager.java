@@ -5,6 +5,7 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,7 +13,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
 
-public class SettingsFileMenager {
+public class SettingsFileManager {
     public static Properties properties;
 
     public static void init() throws IOException {
@@ -28,8 +29,7 @@ public class SettingsFileMenager {
                 Puslar.LOGGER.info("File already exists!");
             }
         } catch (IOException e) {
-            Puslar.LOGGER.info("Something went wrong when creating file!");
-            throw new RuntimeException(e);
+            Puslar.LOGGER.error("Something went wrong when creating file!", new RuntimeException(e));
         }
 
         Path configDir = FabricLoader.getInstance().getConfigDir();
@@ -39,15 +39,32 @@ public class SettingsFileMenager {
 
 
         Settings.init();
-
     }
 
-    // Its not maxdelay
+    public static void updateProperties() throws IOException {
+        Path configDir = FabricLoader.getInstance().getConfigDir();
+        Path settingsFilePath = configDir.resolve("pulsarSettings.properties");
+        File settingsFile = settingsFilePath.toFile();
+        new FileWriter(settingsFile, false).close();
+
+        List<String> NEW_SETTINGS = List.of(
+                "delayTicks=" + Settings.delayTicks,
+                "debug=" + Settings.debug,
+                "maxTicks=" + Settings.maxTicks,
+                "maxDistance=" + Settings.maxDistance,
+                "brakeChance=" + Settings.brakeChance
+        );
+
+        Files.write(settingsFilePath, NEW_SETTINGS);
+        properties.load(new FileInputStream(settingsFile));
+    }
+
     private static final List<String> DEFAULTS_SETTINGS = List.of(
-            "maxDelay=43",
+            "delayTicks=43",
             "debug=false",
             "maxTicks=252000",
-            "maxDistance = 100"
+            "maxDistance=100",
+            "brakeChance=25"
     );
 
     private static void generateDefaults() throws IOException {

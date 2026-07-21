@@ -1,8 +1,9 @@
 package com.gursztof.pulsar.command;
 
-public class ModCommandsManager {
+public class ModCommands {
     public static void init() {
-        PulsarMainCommands.init();
-        PulsarDevCommands.init();
+        MainCommands.init();
+        DevCommands.init();
+        SettingsCommand.init();
     }
 }

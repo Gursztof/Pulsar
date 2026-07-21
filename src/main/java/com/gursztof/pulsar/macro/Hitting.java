@@ -10,7 +10,7 @@ public class Hitting {
         minecraftInstance.options.attackKey.setPressed(true);
     }
 
-    public static void start() {
-        minecraftInstance.options.attackKey.setPressed(true);
+    public static void stop() {
+        minecraftInstance.options.attackKey.setPressed(false);
     }
 }

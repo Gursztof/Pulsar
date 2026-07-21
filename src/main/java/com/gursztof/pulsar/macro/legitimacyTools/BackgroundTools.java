@@ -1,7 +1,8 @@
-package com.gursztof.pulsar.macro.antiBanFeatures;
+package com.gursztof.pulsar.macro.legitimacyTools;
 
 import com.gursztof.pulsar.Puslar;
 import com.gursztof.pulsar.chat.ChatPrefix;
+import com.gursztof.pulsar.chat.ChatSender;
 import com.gursztof.pulsar.macro.FarmingMacro;
 import com.gursztof.pulsar.macro.Movement;
 import com.gursztof.pulsar.macroDirection.PathDirection;
@@ -62,13 +63,11 @@ public class BackgroundTools {
                     Movement.go(PathDirection.LEFT);
                 }
 
-                if (Settings.debug) {
-                    player.sendMessage(ChatPrefix.DEBUG.getPrefix().append("Delay ticks left: " + (endDelayTick - currentTick)), false);
-                }
+                ChatSender.send("Delay ticks left: " + (endDelayTick - currentTick), ChatPrefix.DEBUG);
             }
 
             if (!isOnDelay && delayTicks > 1) {
-                player.sendMessage(ChatPrefix.PULSAR.getPrefix().append("Delay stopped"), false);
+                ChatSender.send("Delay stopped", ChatPrefix.PULSAR);
                 delayTicks = 0;
                 Movement.stop();
             }

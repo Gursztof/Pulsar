@@ -2,8 +2,12 @@ package com.gursztof.pulsar.macro;
 
 import com.gursztof.pulsar.Puslar;
 import com.gursztof.pulsar.chat.ChatPrefix;
+import com.gursztof.pulsar.chat.ChatSender;
+import com.gursztof.pulsar.macro.legitimacyTools.TickTools;
+import com.gursztof.pulsar.macroDirection.PathDirection;
 import com.gursztof.pulsar.settings.Settings;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -11,76 +15,60 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class FarmingMacro {
-    public static boolean lastTurnWasLeft;
-    private static boolean isAirOnLeft;
-    private static boolean isAirOnRight;
-    private static boolean isFarmlandOnFront;
+    public static boolean canBeRight = true;
+    public static boolean canBeLeft = true;
+    public static PathDirection alignTo = PathDirection.RIGHT;
 
     public static void init() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             ClientPlayerEntity player = client.player;
             World world = client.world;
+
             if (player == null || world == null || !Puslar.farmingMacro) {
                 return;
             }
 
-            if (isEndBlock(player, world) && Settings.debug) {
-                player.sendMessage(ChatPrefix.INFO.getPrefix().append("Warp garden"), false);
+            // Those features work only if macro is on
+            TickTools.brakeManager(player, world);
+            TickTools.rotationCheck(player);
+
+            // TODO add delay to end block
+            if (isEndBlock(player, world)) {
+                ChatSender.send("End block", ChatPrefix.DEBUG);
+                if (client.getServer() == null) return;
+                if (!client.isInSingleplayer()) {
+                    ChatSender.send("Server was detected", ChatPrefix.DEBUG);
+                    player.networkHandler.sendChatCommand("warp garden");
+                }
             }
 
-            AntiBanFeatures.rotationCheck();
-            checkBlocksAround(player, world);
+            PathDirection pathDirection = findPath(player, world);
 
-            if (player.isOnGround() && !AntiBanFeatures.isOnBrake) {
-                // Check if we can go straight
-                if (!isFarmlandOnFront && isAlignedForGo(player, lastTurnWasLeft)) {
-                    Movement.goForward();
-                } else if (isFarmlandOnFront && !isAlignedForTurn(player)) {
-                    Movement.goForward();
-                    lastTurnWasLeft = isLastDirectionLeft();
-                } // If not that means we go sideways
-                  else {
-                    if (lastTurnWasLeft) {
-                        Movement.goRight();
+            // Debug direction info
+            ChatSender.send("Direction: " + pathDirection, ChatPrefix.DEBUG);
+
+            if (!TickTools.isOnBrake && player.isOnGround()) {
+                Hitting.start();
+
+                if (pathDirection.equals(PathDirection.FORWARD)) {
+                    if (!isAlignedForGo(player)) {
+                        Movement.go(alignTo);
                     } else {
-                        Movement.goLeft();
+                        Movement.go(PathDirection.FORWARD);
+                    }
+                } else if (pathDirection.equals(PathDirection.LEFT) || pathDirection.equals(PathDirection.RIGHT)) {
+                    if (!isAlignedForTurn(player)) {
+                        Movement.go(PathDirection.FORWARD);
+                    } else {
+                        if (pathDirection.equals(PathDirection.RIGHT)) {
+                            Movement.go(PathDirection.RIGHT);
+                        } else {
+                            Movement.go(PathDirection.LEFT);
+                        }
                     }
                 }
             }
         });
-    }
-
-    private static boolean isLastDirectionLeft() {
-        switch (Settings.direction) {
-            case NORTH, WEST -> {
-                return lastTurnWasLeft = isAirOnRight;
-            }
-            case SOUTH, EAST -> {
-                return lastTurnWasLeft = !isAirOnLeft;
-            }
-        }
-        return  false;
-    }
-
-    private static boolean isEndBlock(ClientPlayerEntity player, World world) {
-        BlockPos blockPos = player.getBlockPos().down();
-        BlockState blockState = world.getBlockState(blockPos);
-        return blockState.getBlock().equals(Blocks.NOTE_BLOCK);
-    }
-    private static void checkBlocksAround(ClientPlayerEntity player, World world) {
-        BlockPos pos = player.getBlockPos();
-
-        BlockPos front = pos.offset(Settings.direction);
-        BlockPos left = pos.offset(Settings.direction.rotateYCounterclockwise());
-        BlockPos right = pos.offset(Settings.direction.rotateYClockwise());
-
-        BlockState stateFront = world.getBlockState(front);
-        BlockState stateLeft = world.getBlockState(left);
-        BlockState stateRight = world.getBlockState(right);
-
-        isAirOnLeft = stateLeft.isAir();
-        isAirOnRight = stateRight.isAir();
-        isFarmlandOnFront = stateFront.getBlock().equals(Blocks.FARMLAND);
     }
 
     private static boolean isAlignedForTurn(ClientPlayerEntity player) {
@@ -89,15 +77,11 @@ public class FarmingMacro {
         switch (Settings.direction) {
             case NORTH, SOUTH -> {
                 frac = player.getZ() - player.getBlockZ();
-                if (Settings.debug) {
-                    player.sendMessage(ChatPrefix.INFO.getPrefix().append(String.valueOf(frac)), false);
-                }
+                ChatSender.send(String.valueOf(frac), ChatPrefix.DEBUG);
             }
             case EAST, WEST -> {
                 frac = player.getX() - player.getBlockX();
-                if (Settings.debug) {
-                    player.sendMessage(ChatPrefix.INFO.getPrefix().append(String.valueOf(frac)), false);
-                }
+                ChatSender.send(String.valueOf(frac), ChatPrefix.DEBUG);
             }
             default -> { return false; }
         }
@@ -108,42 +92,106 @@ public class FarmingMacro {
             default -> false;
         };
     }
-    private static boolean isAlignedForGo(ClientPlayerEntity player, boolean lastTurnWasLeft) {
+
+    private static boolean isAlignedForGo(ClientPlayerEntity player) {
         double randomLegitError = Math.random() * 0.153;
         double frac = 0;
         switch (Settings.direction) {
             case NORTH, SOUTH -> {
                 frac = player.getX() - player.getBlockX();
-                if (Settings.debug) {
-                    player.sendMessage(ChatPrefix.INFO.getPrefix().append(String.valueOf(frac)), false);
-                }
+                ChatSender.send(String.valueOf(frac), ChatPrefix.DEBUG);
             }
             case EAST, WEST -> {
                 frac = player.getZ() - player.getBlockZ();
-                if (Settings.debug) {
-                    player.sendMessage(ChatPrefix.INFO.getPrefix().append(String.valueOf(frac)), false);
-                }
+                ChatSender.send(String.valueOf(frac), ChatPrefix.DEBUG);
             }
         }
 
         return switch (Settings.direction) {
             case NORTH, EAST -> {
-                if (lastTurnWasLeft) {
+                if (alignTo.equals(PathDirection.LEFT)) {
                     // Wall is on right at end
-                    yield frac >= 0.5 + randomLegitError;
+                    yield frac <= 0.5 + randomLegitError;
                 }
                 // Wall is on right at end
-                yield frac <= 0.5 - randomLegitError;
+                yield frac >= 0.5 - randomLegitError;
             }
             case SOUTH, WEST -> {
-                if (lastTurnWasLeft) {
+                if (alignTo.equals(PathDirection.LEFT)) {
                     // Wall is on left at end
-                    yield frac <= 0.5 - randomLegitError;
+                    yield frac >= 0.5 - randomLegitError;
                 }
                 // Wall is on right at end
-                yield frac >= 0.5 + randomLegitError;
+                yield frac <= 0.5 + randomLegitError;
             }
             default -> false;
         };
+    }
+
+    public static PathDirection findPath(ClientPlayerEntity player, World world) {
+        int count = 0;
+
+        BlockPos playerPos = player.getBlockPos();
+        BlockPos blockForwardPos = playerPos.offset(Settings.direction, 1);
+        BlockState blockStateForward = world.getBlockState(blockForwardPos);
+        Block blockForward = blockStateForward.getBlock();
+
+        if (blockStateForward.isAir() || blockForward.equals(Blocks.WATER)) {
+            canBeRight = true;
+            canBeLeft = true;
+            return PathDirection.FORWARD;
+        }
+
+        if (!canBeRight) {
+            return PathDirection.LEFT;
+        } else if (!canBeLeft) {
+            return PathDirection.RIGHT;
+        }
+
+        while (count < Settings.maxDistance) {
+            count++;
+
+            BlockPos forwardLeftBlockPos = blockForwardPos.offset(Settings.direction.rotateYCounterclockwise(), count);
+            BlockState forwardLeftBlock = world.getBlockState(forwardLeftBlockPos);
+
+            BlockPos forwardRightBlockPos = blockForwardPos.offset(Settings.direction.rotateYClockwise(), count);
+            BlockState forwardRightBlock = world.getBlockState(forwardRightBlockPos);
+
+            if (forwardRightBlock.isAir() || forwardLeftBlock.isAir()) {
+                if (forwardRightBlock.isAir()) {
+                    BlockState beforeRightBlock = world.getBlockState(forwardRightBlockPos.offset(Settings.direction.getOpposite(), 1));
+                    if (beforeRightBlock.isAir()) {
+                        canBeLeft = false;
+                        alignTo = PathDirection.RIGHT;
+                        return PathDirection.RIGHT;
+                    } else {
+                        canBeRight = false;
+                        alignTo = PathDirection.LEFT;
+                        return PathDirection.LEFT;
+                    }
+                }
+
+                if (forwardLeftBlock.isAir()) {
+                    BlockState beforeLeftBlock = world.getBlockState(forwardLeftBlockPos.offset(Settings.direction.getOpposite(), 1));
+                    if (beforeLeftBlock.isAir()) {
+                        canBeRight = false;
+                        alignTo = PathDirection.LEFT;
+                        return PathDirection.LEFT;
+                    } else {
+                        canBeLeft = false;
+                        alignTo = PathDirection.RIGHT;
+                        return PathDirection.RIGHT;
+                    }
+                }
+            }
+        }
+
+        return PathDirection.NOWAY;
+    }
+
+    private static boolean isEndBlock(ClientPlayerEntity player, World world) {
+        BlockPos blockPos = player.getBlockPos().down();
+        BlockState blockState = world.getBlockState(blockPos);
+        return blockState.getBlock().equals(Blocks.NOTE_BLOCK);
     }
 }
