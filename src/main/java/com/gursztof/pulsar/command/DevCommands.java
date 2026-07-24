@@ -27,6 +27,8 @@ public class DevCommands {
     private static int executeCommandWithArg(String context) {
         return switch (context) {
             case "debug" -> debugSwitch();
+            // TODO settings for debug messages
+            case "debugSettings" -> 1;
             default -> 0;
         };
     }

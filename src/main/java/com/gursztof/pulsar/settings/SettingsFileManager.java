@@ -63,8 +63,8 @@ public class SettingsFileManager {
             "delayTicks=43",
             "debug=false",
             "maxTicks=252000",
-            "maxDistance=100",
-            "brakeChance=25"
+            "maxDistance=250",
+            "brakeChance=5"
     );
 
     private static void generateDefaults() throws IOException {

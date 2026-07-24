@@ -31,13 +31,13 @@ public class MainCommands {
 
         if (value.equals("on") && !Puslar.farmingMacro) {
             ChatSender.send("Macro on", ChatPrefix.PULSAR);
+
+            FarmingMacro.canBeRight = true;
+            FarmingMacro.canBeLeft = true;
+
             Puslar.farmingMacro = true;
             Settings.direction = player.getHorizontalFacing();
             TickTools.rotated = false;
-
-            // TEMP
-            FarmingMacro.canBeRight = true;
-            FarmingMacro.canBeLeft = true;
 
             ChatSender.send(String.valueOf(Settings.direction), ChatPrefix.DEBUG);
         } else if (value.equals("off") && Puslar.farmingMacro) {

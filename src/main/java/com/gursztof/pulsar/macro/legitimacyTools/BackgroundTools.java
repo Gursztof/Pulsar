@@ -4,6 +4,7 @@ import com.gursztof.pulsar.Puslar;
 import com.gursztof.pulsar.chat.ChatPrefix;
 import com.gursztof.pulsar.chat.ChatSender;
 import com.gursztof.pulsar.macro.FarmingMacro;
+import com.gursztof.pulsar.macro.Hitting;
 import com.gursztof.pulsar.macro.Movement;
 import com.gursztof.pulsar.macroDirection.PathDirection;
 import com.gursztof.pulsar.settings.Settings;
@@ -11,6 +12,9 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.network.ClientPlayerEntity;
 
 public class BackgroundTools {
+    public static boolean inAir = false;
+    private static boolean airCheck = false;
+
     public static int currentTick = 1;
 
     private static int endDelayTick = 0;
@@ -20,9 +24,31 @@ public class BackgroundTools {
     public static void init() {
         shiftManager();
         reactionDelayManager();
+        isFlying();
     }
 
-    // TODO its now init in pulsar so ticks are counting since game starts xdz
+    public static void isFlying() {
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            ClientPlayerEntity player = client.player;
+            if (player == null) return;
+
+            if (!inAir && !player.isOnGround()) {
+                inAir = true;
+            } else if (inAir && player.isOnGround()) {
+                inAir = false;
+                airCheck = false;
+            }
+
+            ChatSender.send("InAir: " + inAir, ChatPrefix.DEBUG);
+
+            if (inAir && !airCheck) {
+                Movement.stop();
+                Hitting.stop();
+                airCheck = true;
+            }
+        });
+    }
+
     private static void shiftManager() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             currentTick++;
@@ -51,11 +77,13 @@ public class BackgroundTools {
             if (delayRequest) {
                 Puslar.farmingMacro = false;
                 Movement.stop();
+
+                FarmingMacro.canBeRight = true;
+                FarmingMacro.canBeLeft = true;
+
                 delayRequest = false;
             }
 
-
-            // TODO maybe in future make it so it always go into farmland
             if (isOnDelay) {
                 if (FarmingMacro.alignTo.equals(PathDirection.RIGHT)) {
                     Movement.go(PathDirection.RIGHT);
@@ -68,8 +96,11 @@ public class BackgroundTools {
 
             if (!isOnDelay && delayTicks > 1) {
                 ChatSender.send("Delay stopped", ChatPrefix.PULSAR);
+
                 delayTicks = 0;
+
                 Movement.stop();
+                Hitting.stop();
             }
         });
     }

@@ -1,6 +1,7 @@
 package com.gursztof.pulsar;
 
 import com.gursztof.pulsar.command.ModCommands;
+import com.gursztof.pulsar.macro.Hitting;
 import com.gursztof.pulsar.macro.legitimacyTools.LegitimacyTools;
 import com.gursztof.pulsar.macro.FarmingMacro;
 import com.gursztof.pulsar.settings.SettingsFileManager;
@@ -28,6 +29,7 @@ public class Puslar implements ModInitializer {
 			LOGGER.error("Settings init failed!", new RuntimeException(e));
         }
 		ModCommands.init();
+		Hitting.init();
         FarmingMacro.init();
 		LegitimacyTools.init();
     }

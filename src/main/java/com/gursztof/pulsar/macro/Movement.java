@@ -20,7 +20,6 @@ public class Movement {
         resetMove();
     }
 
-    // TODO implement way to have movement forward and left at the same time
     private static void goLeft() {
         resetMove();
         minecraftInstance.options.leftKey.setPressed(true);

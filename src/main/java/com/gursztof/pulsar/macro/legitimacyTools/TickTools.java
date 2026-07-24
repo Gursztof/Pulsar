@@ -33,14 +33,14 @@ public class TickTools {
     public static void brakeManager(ClientPlayerEntity player, World world) {
         boolean onBrakeBlock = isBrakeBlock(player, world);
         // Math random is for chances of NOT going for brake
-        // TODO change that to something else
-        double comparable = Math.random() * 100;
+        double breakRoll = Math.random() * 100;
 
-        if (onBrakeBlock && !brakePending && !isOnBrake && comparable < Settings.brakeChance) {
-            ChatSender.send(comparable + " is lower than " + Settings.brakeChance, ChatPrefix.DEBUG);
+        if (onBrakeBlock && !brakePending && !isOnBrake && breakRoll < Settings.brakeChance) {
+            ChatSender.send(breakRoll + " is lower than " + Settings.brakeChance, ChatPrefix.DEBUG);
 
             brakeDurationTicks = 140 + (int) (Math.random() * (1200 - 140));
             brakePending = true;
+
             ChatSender.send("Brake for " + brakeDurationTicks + " ticks", ChatPrefix.PULSAR);
         }
 
@@ -48,8 +48,10 @@ public class TickTools {
             brakePending = false;
             isOnBrake = true;
             endBrakeTick = BackgroundTools.currentTick + brakeDurationTicks;
+
             Movement.stop();
             Hitting.stop();
+
             ChatSender.send("Brake started", ChatPrefix.PULSAR);
         }
 

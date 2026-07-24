@@ -1,5 +1,7 @@
 package com.gursztof.pulsar.command;
 
+import com.gursztof.pulsar.chat.ChatPrefix;
+import com.gursztof.pulsar.chat.ChatSender;
 import com.gursztof.pulsar.settings.Settings;
 import com.gursztof.pulsar.settings.SettingsFileManager;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -35,10 +37,22 @@ public class SettingsCommand {
 
     private static int changeSetting(String settingName, String value) throws IOException {
         switch (settingName) {
-            case "maxTicks" -> Settings.maxTicks = Integer.parseInt(value);
-            case "delayTicks" -> Settings.delayTicks = Integer.parseInt(value);
-            case "maxDistance" -> Settings.maxDistance = Integer.parseInt(value);
-            case "brakeChance" -> Settings.brakeChance = Integer.parseInt(value);
+            case "maxTicks" -> {
+                Settings.maxTicks = Integer.parseInt(value);
+                ChatSender.send("maxTicks changed to: " + value, ChatPrefix.PULSAR);
+            }
+            case "delayTicks" -> {
+                Settings.delayTicks = Integer.parseInt(value);
+                ChatSender.send("delayTicks changed to: " + value, ChatPrefix.PULSAR);
+            }
+            case "maxDistance" -> {
+                Settings.maxDistance = Integer.parseInt(value);
+                ChatSender.send("maxDistance changed to: " + value, ChatPrefix.PULSAR);
+            }
+            case "brakeChance" -> {
+                Settings.brakeChance = Integer.parseInt(value);
+                ChatSender.send("brakeChance changed to: " + value, ChatPrefix.PULSAR);
+            }
         }
 
         SettingsFileManager.properties.put(settingName, value);
